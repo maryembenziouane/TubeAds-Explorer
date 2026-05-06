@@ -9,6 +9,7 @@ import LoginModal from './components/LoginModal';
 import MessagesDrawer from './components/MessagesDrawer';
 import MyOrders from './components/MyOrders';
 import VideoPlayerModal from './components/VideoPlayerModal';
+import EditAdModal from './components/EditAdModal';
 
 const LOCALE_STORAGE = 'marketplace-locale';
 
@@ -33,6 +34,7 @@ function Shell() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const [activeAd, setActiveAd] = useState(null);
+  const [editingAd, setEditingAd] = useState(null);
 
   const requireLogin = useCallback(() => setLoginOpen(true), []);
 
@@ -115,6 +117,13 @@ function Shell() {
               category={category}
               onRequireLogin={requireLogin}
               onPlay={(ad) => setActiveAd(ad)}
+              onEdit={(ad) => {
+                if (!user) {
+                  requireLogin();
+                  return;
+                }
+                setEditingAd(ad);
+              }}
             />
           </div>
           <TrustStrip />
@@ -138,6 +147,12 @@ function Shell() {
         onRequireLogin={requireLogin}
       />
       <VideoPlayerModal open={!!activeAd} ad={activeAd} onClose={() => setActiveAd(null)} />
+      <EditAdModal
+        open={!!editingAd}
+        ad={editingAd}
+        onClose={() => setEditingAd(null)}
+        onSaved={() => {}}
+      />
     </div>
   );
 }

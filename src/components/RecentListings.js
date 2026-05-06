@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { listenAds } from '../services/listings';
+import { ANNONCES_COLLECTION, adMatchesSelectedCategory, listenAds } from '../services/listings';
 import { listenFavoriteIds } from '../services/favorites';
 import AdCard from './AdCard';
 
@@ -14,6 +14,7 @@ export default function RecentListings({
   category = null,
   onRequireLogin,
   onPlay,
+  onEdit,
 }) {
   const { user } = useAuth();
   const [ads, setAds] = useState([]);
@@ -24,7 +25,7 @@ export default function RecentListings({
   useEffect(() => {
     setStatus('loading');
     const off = listenAds(
-      { category, max: 72 },
+      { max: 72 },
       (items) => {
         setAds(items);
         setStatus('ready');
@@ -36,7 +37,12 @@ export default function RecentListings({
       },
     );
     return off;
-  }, [category]);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('Ads received:', ads);
+  }, [ads]);
 
   useEffect(() => {
     if (!user) {
@@ -49,16 +55,19 @@ export default function RecentListings({
   }, [user]);
 
   const filtered = useMemo(() => {
+    const byCategory = category
+      ? ads.filter((ad) => adMatchesSelectedCategory(ad, category))
+      : ads;
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return ads;
-    return ads.filter((ad) =>
+    if (!q) return byCategory;
+    return byCategory.filter((ad) =>
       [ad.title, ad.description, ad.category, ad.city]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
         .includes(q),
     );
-  }, [ads, searchQuery]);
+  }, [ads, searchQuery, category]);
 
   return (
     <section id="recent-listings" className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
@@ -80,7 +89,7 @@ export default function RecentListings({
       {status === 'error' && (
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
           Could not load listings. Confirm Firestore rules allow read on{' '}
-          <code className="font-mono text-xs">annonces</code>.{' '}
+          <code className="font-mono text-xs">{ANNONCES_COLLECTION}</code>.{' '}
           {error?.message || ''}
         </div>
       )}
@@ -88,7 +97,9 @@ export default function RecentListings({
         <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-16 text-center text-slate-600">
           {searchQuery.trim()
             ? 'No listings match your search.'
-            : 'No listings loaded from Firestore.'}
+            : category
+              ? 'No listings match this category.'
+              : 'No listings loaded from Firestore.'}
         </div>
       )}
       {status === 'ready' && filtered.length > 0 && (
@@ -100,6 +111,7 @@ export default function RecentListings({
               isFavorite={favIds.has(ad.id)}
               onRequireLogin={onRequireLogin}
               onPlay={onPlay}
+              onEdit={onEdit}
             />
           ))}
         </div>

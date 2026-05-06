@@ -1,4 +1,4 @@
-// Read-only Marketplace feed — `annonces` collection from the Firebase project
+// Read-only Marketplace feed — Firestore `listings` collection (same as the RN app)
 // shared with the React Native Video Ads app (`src/firebase.js` → Firestore db).
 //
 // Real-time via a single collection subscription (no redundant duplicate
@@ -10,19 +10,17 @@ import {
   getDoc,
   onSnapshot,
   query,
+  updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { categoryFirestoreValue } from './categories';
 
-/** Collection ID used by the mobile home feed (must match Firebase). */
-export const ANNONCES_COLLECTION = 'annonces';
-// Keep web in lockstep with the mobile app: read from the exact same collection.
-// If you ever discover the app is writing to a different collection, change
-// this constant (and only this constant).
-export const FALLBACK_COLLECTIONS = [];
-
-// Debug helper so we don't spam the console with thousands of logs.
-let __parseDebugCount = 0;
+/**
+ * Collection ID must match the React Native app (`VideoUploadApp/src/services/firestore.ts`
+ * → `firestore().collection('listings')`). If your deployed app still uses another name,
+ * change only this string.
+ */
+export const ANNONCES_COLLECTION = 'listings';
 
 function normCat(s) {
   return String(s ?? '')
@@ -33,7 +31,7 @@ function normCat(s) {
     .replace(/\s+/g, ' ');
 }
 
-function adMatchesSelectedCategory(ad, selectedTileId) {
+export function adMatchesSelectedCategory(ad, selectedTileId) {
   if (!selectedTileId) return true;
   const stored = normCat(ad.category);
   const fromTileId = normCat(categoryFirestoreValue(selectedTileId));
@@ -53,18 +51,33 @@ function extractYoutubeVideoId(candidate) {
 }
 
 /**
- * Hydrate a Firestore `annonces` document into the canonical `Ad` shape.
- * Mirrors mobile fields: title, price, category, thumbnail, youtubeVideoId /
- * videoUrl, etc.
+ * Hydrate a Firestore listing document into the canonical `Ad` shape.
+ * Mirrors mobile fields: title, priceCents, category, thumbnail, youtubeVideoId /
+ * videoUrl / video_url, etc.
  */
-export function parseAd(id, raw) {
-  // DEBUG: Inspect the exact Firestore document shape coming from mobile.
-  // Only log a few docs to keep the console readable.
-  if (process.env.NODE_ENV !== 'production' && __parseDebugCount < 10) {
-    __parseDebugCount += 1;
-    // eslint-disable-next-line no-console
-    console.log('Raw data from Firestore:', raw);
+function coercePriceCents(raw) {
+  if (typeof raw.priceCents === 'number' && Number.isFinite(raw.priceCents)) {
+    return Math.round(raw.priceCents);
   }
+  if (typeof raw.price_cents === 'number' && Number.isFinite(raw.price_cents)) {
+    return Math.round(raw.price_cents);
+  }
+  if (typeof raw.price === 'number' && Number.isFinite(raw.price)) {
+    return Math.round(raw.price * 100);
+  }
+  if (typeof raw.price === 'string' && raw.price.trim()) {
+    const n = Number.parseFloat(raw.price.replace(',', '.'));
+    if (Number.isFinite(n)) return Math.round(n * 100);
+  }
+  return 0;
+}
+
+export function parseAd(id, raw) {
+  // Defensive: Firestore can return unexpected shapes; never crash the UI.
+  raw = raw && typeof raw === 'object' ? raw : {};
+
+  // eslint-disable-next-line no-console
+  console.log('Fetched Ad Data:', raw);
 
   const rawVideoUrl =
     (typeof raw.videoUrl === 'string' && raw.videoUrl) ||
@@ -101,16 +114,9 @@ export function parseAd(id, raw) {
 
   return {
     id,
-    title: String(raw.title ?? raw.name ?? ''),
-    description: String(raw.description ?? ''),
-    priceCents:
-      typeof raw.priceCents === 'number'
-        ? raw.priceCents
-        : typeof raw.price_cents === 'number'
-          ? raw.price_cents
-          : typeof raw.price === 'number'
-            ? Math.round(raw.price * 100)
-            : 0,
+    title: String(raw.title ?? raw.name ?? raw.titre ?? ''),
+    description: String(raw.description ?? raw.desc ?? ''),
+    priceCents: coercePriceCents(raw),
     currency: raw.currency || 'MAD',
     category: String(raw.category ?? ''),
     city: String(raw.city ?? ''),
@@ -144,10 +150,12 @@ export function listenAds({ category, max = 60 } = {}, onChange, onError) {
   return onSnapshot(
     query(collection(db, ANNONCES_COLLECTION)),
     (snapshot) => {
+      // eslint-disable-next-line no-console
+      console.log('Docs fetched:', snapshot.docs.length);
       const items = snapshot.docs.map((d) => parseAd(d.id, d.data()));
       items.sort((a, b) => timestampMs(b.createdAt) - timestampMs(a.createdAt));
-      // TEMP DEBUG: show *every* doc returned by the collection subscription.
-      // No Firestore where() clauses, and no client-side category filtering.
+      // Read EVERYTHING first (no where() filters, and no category filtering here).
+      // Category/search filtering is handled in the UI layer.
       onChange(items.slice(0, max));
     },
     (err) => {
@@ -162,6 +170,12 @@ export async function getAd(adId) {
   const snap = await getDoc(doc(db, ANNONCES_COLLECTION, adId));
   if (!snap.exists()) return null;
   return parseAd(snap.id, snap.data());
+}
+
+export async function updateAd(adId, patch) {
+  if (!adId) throw new Error('Missing adId');
+  if (!patch || typeof patch !== 'object') throw new Error('Missing patch');
+  await updateDoc(doc(db, ANNONCES_COLLECTION, adId), patch);
 }
 
 export function listenMyAds(uid, onChange, onError) {

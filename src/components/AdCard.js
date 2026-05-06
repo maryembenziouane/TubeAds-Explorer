@@ -46,7 +46,7 @@ function hasNewBadge(ts) {
   return ms != null && Date.now() - ms < NEW_MS;
 }
 
-export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay }) {
+export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit }) {
   const { user } = useAuth();
   const [heartBusy, setHeartBusy] = useState(false);
   const hasVideo = Boolean(ad.youtubeVideoId) || Boolean(ad.videoUrl);
@@ -71,6 +71,8 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay }) {
       setHeartBusy(false);
     }
   }
+
+  const isOwner = !!user && user.uid === ad.ownerUid;
 
   return (
     <article className="group relative rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:z-[1] hover:-translate-y-0.5 hover:shadow-lg">
@@ -120,6 +122,21 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay }) {
           )}
         </div>
       </button>
+
+      {isOwner && (
+        <button
+          type="button"
+          className="absolute left-2.5 top-2.5 rounded-full border border-black/5 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 shadow-md backdrop-blur transition hover:scale-105"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Handled by parent (opens edit modal/page)
+            onEdit?.(ad);
+          }}
+        >
+          Modifier
+        </button>
+      )}
 
       <button
         type="button"
