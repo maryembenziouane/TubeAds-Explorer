@@ -12,6 +12,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { categoryFirestoreValue } from './categories';
@@ -162,6 +163,29 @@ export function listenAds({ category, max = 60 } = {}, onChange, onError) {
     (err) => {
       // eslint-disable-next-line no-console
       console.error(`[${ANNONCES_COLLECTION}]`, err);
+      onError?.(err);
+    },
+  );
+}
+
+/**
+ * Moderation queue: every listing with `status == "pending"` in Firestore.
+ * Uses a targeted query so pending ads are not lost when `listenAds` slices
+ * to the N newest documents only.
+ */
+export function listenPendingAds(onChange, onError) {
+  return onSnapshot(
+    query(collection(db, ANNONCES_COLLECTION), where('status', '==', 'pending')),
+    (snapshot) => {
+      // eslint-disable-next-line no-console
+      console.log('Admin pending queue:', snapshot.docs.length);
+      const items = snapshot.docs.map((d) => parseAd(d.id, d.data()));
+      items.sort((a, b) => timestampMs(b.createdAt) - timestampMs(a.createdAt));
+      onChange(items);
+    },
+    (err) => {
+      // eslint-disable-next-line no-console
+      console.error(`[${ANNONCES_COLLECTION}] pending query`, err);
       onError?.(err);
     },
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import useIsAdmin from '../hooks/useIsAdmin';
-import { approveListing, listenAds } from '../services/listings';
+import { approveListing, listenPendingAds } from '../services/listings';
 import { pushPath } from '../utils/routing';
 
 function badge(text, tone) {
@@ -20,11 +20,9 @@ export default function AdminDashboard({ onRequireLogin, onNavigateHome }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const unsub = listenAds(
-      { max: 600 },
-      (all) => {
-        const pend = all.filter((ad) => String(ad.status ?? '').toLowerCase() === 'pending');
-        setItems(pend);
+    const unsub = listenPendingAds(
+      (pending) => {
+        setItems(pending);
         setError(null);
       },
       setError,
@@ -111,7 +109,15 @@ export default function AdminDashboard({ onRequireLogin, onNavigateHome }) {
         </div>
         <div className="divide-y divide-slate-200">
           {items.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-slate-600">No pending listings.</div>
+            <div className="px-5 py-10 text-center text-sm text-slate-600">
+              No ads with <code className="font-mono text-xs">status: &quot;pending&quot;</code> in Firestore.
+              <div className="mt-2 text-xs text-slate-500">
+                The home feed only keeps the newest listings client-side; this list uses a dedicated query so
+                nothing is missed. Confirm edits set{' '}
+                <code className="font-mono text-[11px]">status: &quot;pending&quot;</code> and that rules allow
+                admins to read that query.
+              </div>
+            </div>
           ) : (
             items.map((ad) => {
               const busy = approveBusy.has(ad.id);
