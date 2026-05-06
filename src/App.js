@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -10,6 +10,8 @@ import MessagesDrawer from './components/MessagesDrawer';
 import MyOrders from './components/MyOrders';
 import VideoPlayerModal from './components/VideoPlayerModal';
 import EditAdModal from './components/EditAdModal';
+import AdminDashboard from './components/AdminDashboard';
+import { isAdminDashboardPath, normalizePathname, pushPath, subscribePathname } from './utils/routing';
 
 const LOCALE_STORAGE = 'marketplace-locale';
 
@@ -23,6 +25,7 @@ export default function App() {
 
 function Shell() {
   const { user } = useAuth();
+  const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
   const [page, setPage] = useState('listings');
   const [navId, setNavId] = useState('home');
   const [locale, setLocale] = useState(() => {
@@ -38,6 +41,17 @@ function Shell() {
 
   const requireLogin = useCallback(() => setLoginOpen(true), []);
 
+  const resetPathToHome = useCallback(() => {
+    pushPath('/');
+    setPathname(normalizePathname('/'));
+  }, []);
+
+  useEffect(() => {
+    return subscribePathname(() =>
+      setPathname(normalizePathname(window.location.pathname)),
+    );
+  }, []);
+
   function scrollToId(id) {
     requestAnimationFrame(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -45,6 +59,8 @@ function Shell() {
   }
 
   function handleNavigate(id) {
+    if (isAdminDashboardPath(pathname)) resetPathToHome();
+
     if (id === 'messages') {
       if (!user) {
         requireLogin();
@@ -79,12 +95,13 @@ function Shell() {
     }
   }
 
+  const adminRoute = isAdminDashboardPath(pathname);
   const isListings = page === 'listings';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <Header
-        activeNavId={isListings ? navId : ''}
+        activeNavId={isListings && !adminRoute ? navId : ''}
         locale={locale}
         onLocaleChange={setLocale}
         onNavigate={handleNavigate}
@@ -97,10 +114,16 @@ function Shell() {
           setMessagesOpen(true);
         }}
         onLogin={() => setLoginOpen(true)}
-        transparent={isListings}
+        transparent={isListings && !adminRoute}
       />
 
-      {isListings && (
+      {adminRoute && (
+        <main className="min-h-screen">
+          <AdminDashboard onRequireLogin={requireLogin} onNavigateHome={resetPathToHome} />
+        </main>
+      )}
+
+      {!adminRoute && isListings && (
         <main>
           <Hero
             searchQuery={searchQuery}
@@ -130,7 +153,7 @@ function Shell() {
         </main>
       )}
 
-      {!isListings && (
+      {!adminRoute && !isListings && (
         <main className="min-h-screen pt-4">
           <MyOrders onRequireLogin={requireLogin} />
         </main>

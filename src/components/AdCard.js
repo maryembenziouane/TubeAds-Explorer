@@ -126,7 +126,7 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit 
       {isOwner && (
         <button
           type="button"
-          className="absolute left-2.5 top-2.5 rounded-full border border-black/5 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 shadow-md backdrop-blur transition hover:scale-105"
+          className="absolute left-2.5 top-12 rounded-full border border-black/5 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 shadow-md backdrop-blur transition hover:scale-105"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

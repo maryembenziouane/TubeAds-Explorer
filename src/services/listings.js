@@ -10,6 +10,7 @@ import {
   getDoc,
   onSnapshot,
   query,
+  serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -176,6 +177,23 @@ export async function updateAd(adId, patch) {
   if (!adId) throw new Error('Missing adId');
   if (!patch || typeof patch !== 'object') throw new Error('Missing patch');
   await updateDoc(doc(db, ANNONCES_COLLECTION, adId), patch);
+}
+
+export async function approveListing(adId) {
+  if (!adId) throw new Error('Missing adId');
+  await updateDoc(doc(db, ANNONCES_COLLECTION, adId), {
+    status: 'approved',
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Visible on public home grid: moderated `approved`.
+ * Legacy: mobile app historically wrote `active` — treated as approved until migrated.
+ */
+export function adIsVisibleOnPublicHome(ad) {
+  const s = String(ad?.status ?? '').toLowerCase();
+  return s === 'approved' || s === 'active';
 }
 
 export function listenMyAds(uid, onChange, onError) {

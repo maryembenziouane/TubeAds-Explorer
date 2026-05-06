@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ANNONCES_COLLECTION, adMatchesSelectedCategory, listenAds } from '../services/listings';
+import { ANNONCES_COLLECTION, adIsVisibleOnPublicHome, adMatchesSelectedCategory, listenAds } from '../services/listings';
 import { listenFavoriteIds } from '../services/favorites';
 import AdCard from './AdCard';
 
@@ -54,10 +54,12 @@ export default function RecentListings({
     );
   }, [user]);
 
+  const publishedAds = useMemo(() => ads.filter(adIsVisibleOnPublicHome), [ads]);
+
   const filtered = useMemo(() => {
     const byCategory = category
-      ? ads.filter((ad) => adMatchesSelectedCategory(ad, category))
-      : ads;
+      ? publishedAds.filter((ad) => adMatchesSelectedCategory(ad, category))
+      : publishedAds;
     const q = searchQuery.trim().toLowerCase();
     if (!q) return byCategory;
     return byCategory.filter((ad) =>
@@ -67,7 +69,7 @@ export default function RecentListings({
         .toLowerCase()
         .includes(q),
     );
-  }, [ads, searchQuery, category]);
+  }, [publishedAds, searchQuery, category]);
 
   return (
     <section id="recent-listings" className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
@@ -79,7 +81,8 @@ export default function RecentListings({
           {status === 'ready' && (
             <>
               {filtered.length} shown
-              {ads.length !== filtered.length ? ` · ${ads.length} from feed` : null}
+              {publishedAds.length !== filtered.length ? ` · ${publishedAds.length} published` : null}
+              {ads.length !== publishedAds.length ? ` · ${ads.length} in feed` : null}
             </>
           )}
         </p>
@@ -99,7 +102,9 @@ export default function RecentListings({
             ? 'No listings match your search.'
             : category
               ? 'No listings match this category.'
-              : 'No listings loaded from Firestore.'}
+              : ads.length === 0
+                ? 'No listings loaded from Firestore.'
+                : 'No listings are published yet. Pending ads must be approved in the admin dashboard.'}
         </div>
       )}
       {status === 'ready' && filtered.length > 0 && (
