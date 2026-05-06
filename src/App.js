@@ -11,7 +11,8 @@ import MyOrders from './components/MyOrders';
 import VideoPlayerModal from './components/VideoPlayerModal';
 import EditAdModal from './components/EditAdModal';
 import AdminDashboard from './components/AdminDashboard';
-import { isAdminDashboardPath, normalizePathname, pushPath, subscribePathname } from './utils/routing';
+import ShopPage from './components/ShopPage';
+import { isAdminDashboardPath, matchShopPath, normalizePathname, pushPath, shopPathForUser, subscribePathname } from './utils/routing';
 
 const LOCALE_STORAGE = 'marketplace-locale';
 
@@ -46,6 +47,13 @@ function Shell() {
     setPathname(normalizePathname('/'));
   }, []);
 
+  const goShop = useCallback((uid) => {
+    if (!uid) return;
+    const path = shopPathForUser(uid);
+    pushPath(path);
+    setPathname(normalizePathname(path));
+  }, []);
+
   useEffect(() => {
     return subscribePathname(() =>
       setPathname(normalizePathname(window.location.pathname)),
@@ -59,7 +67,7 @@ function Shell() {
   }
 
   function handleNavigate(id) {
-    if (isAdminDashboardPath(pathname)) resetPathToHome();
+    if (isAdminDashboardPath(pathname) || matchShopPath(pathname)) resetPathToHome();
 
     if (id === 'messages') {
       if (!user) {
@@ -96,12 +104,14 @@ function Shell() {
   }
 
   const adminRoute = isAdminDashboardPath(pathname);
+  const shopMatch = matchShopPath(pathname);
+  const shopRoute = !!shopMatch?.userId;
   const isListings = page === 'listings';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <Header
-        activeNavId={isListings && !adminRoute ? navId : ''}
+        activeNavId={isListings && !adminRoute && !shopRoute ? navId : ''}
         locale={locale}
         onLocaleChange={setLocale}
         onNavigate={handleNavigate}
@@ -114,16 +124,33 @@ function Shell() {
           setMessagesOpen(true);
         }}
         onLogin={() => setLoginOpen(true)}
-        transparent={isListings && !adminRoute}
+        transparent={isListings && !adminRoute && !shopRoute}
       />
 
-      {adminRoute && (
+      {shopRoute && (
+        <ShopPage
+          sellerId={shopMatch.userId}
+          onRequireLogin={requireLogin}
+          onPlay={(ad) => setActiveAd(ad)}
+          onEdit={(ad) => {
+            if (!user) {
+              requireLogin();
+              return;
+            }
+            setEditingAd(ad);
+          }}
+          onNavigateHome={resetPathToHome}
+          onVisitShop={goShop}
+        />
+      )}
+
+      {!shopRoute && adminRoute && (
         <main className="min-h-screen">
           <AdminDashboard onRequireLogin={requireLogin} onNavigateHome={resetPathToHome} />
         </main>
       )}
 
-      {!adminRoute && isListings && (
+      {!shopRoute && !adminRoute && isListings && (
         <main>
           <Hero
             searchQuery={searchQuery}
@@ -147,13 +174,14 @@ function Shell() {
                 }
                 setEditingAd(ad);
               }}
+              onVisitShop={goShop}
             />
           </div>
           <TrustStrip />
         </main>
       )}
 
-      {!adminRoute && !isListings && (
+      {!shopRoute && !adminRoute && !isListings && (
         <main className="min-h-screen pt-4">
           <MyOrders onRequireLogin={requireLogin} />
         </main>

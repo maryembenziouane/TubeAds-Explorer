@@ -1,0 +1,162 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { subscribeUser } from '../services/users';
+import { adIsVisibleOnPublicHome, listenListingsByOwner } from '../services/listings';
+import { listenFavoriteIds } from '../services/favorites';
+import { pushPath } from '../utils/routing';
+import AdCard from './AdCard';
+
+export default function ShopPage({
+  sellerId,
+  onRequireLogin,
+  onPlay,
+  onEdit,
+  onNavigateHome,
+  onVisitShop,
+}) {
+  const { user } = useAuth();
+  const [seller, setSeller] = useState(null);
+  const [ads, setAds] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [loadErr, setLoadErr] = useState(null);
+  const [favIds, setFavIds] = useState(() => new Set());
+
+  useEffect(() => {
+    if (!sellerId) return undefined;
+    return subscribeUser(sellerId, setSeller, (err) =>
+      // eslint-disable-next-line no-console
+      console.warn('users doc', err),
+    );
+  }, [sellerId]);
+
+  useEffect(() => {
+    if (!sellerId) return undefined;
+    setStatus('loading');
+    const off = listenListingsByOwner(
+      sellerId,
+      (items) => {
+        const pub = items.filter(adIsVisibleOnPublicHome);
+        setAds(pub);
+        setStatus('ready');
+        setLoadErr(null);
+      },
+      (err) => {
+        setLoadErr(err);
+        setStatus('error');
+      },
+    );
+    return off;
+  }, [sellerId]);
+
+  useEffect(() => {
+    if (!user) {
+      setFavIds(new Set());
+      return undefined;
+    }
+    return listenFavoriteIds(user.uid, setFavIds, () => {});
+  }, [user]);
+
+  const displayName = useMemo(() => {
+    if (seller?.shopName) return seller.shopName;
+    return `Boutique · ${sellerId?.slice(0, 8)}…`;
+  }, [seller, sellerId]);
+
+  function handleVisitSeller(uid) {
+    if (!uid) return;
+    onVisitShop?.(uid);
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50 pb-12">
+      <header className="border-b border-slate-100 bg-white">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-4 py-10 sm:px-6 lg:flex-row lg:items-start lg:gap-10 lg:px-8">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm sm:h-28 sm:w-28">
+            {seller?.shopLogoUrl ? (
+              <img src={seller.shopLogoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-3xl font-black text-slate-300">
+                {(displayName.slice(0, 1) || '?').toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+                {displayName}
+              </h1>
+              {seller?.isPro && (
+                <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white">
+                  Pro
+                </span>
+              )}
+            </div>
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+              {seller?.shopDescription ||
+                'Découvrez les annonces de ce vendeur. Qualité et transparence, comme sur Avito.'}
+            </p>
+            <button
+              type="button"
+              className="text-sm font-bold text-brand-600 hover:underline"
+              onClick={() => {
+                pushPath('/');
+                onNavigateHome?.();
+              }}
+            >
+              ← Retour au marché
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <section className="mx-auto mt-10 max-w-[1280px] px-4 sm:px-6 lg:px-8">
+        <h2 className="text-lg font-extrabold tracking-tight text-slate-900">
+          Annonces du vendeur · {ads.length}
+        </h2>
+
+        {status === 'loading' && (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white">
+                <div className="aspect-[4/3] animate-pulse bg-slate-100" />
+                <div className="space-y-2 p-4">
+                  <div className="h-5 w-1/3 animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-[92%] animate-pulse rounded bg-slate-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+            {loadErr?.message || String(loadErr)}
+          </div>
+        )}
+
+        {status === 'ready' && ads.length === 0 && (
+          <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-16 text-center text-slate-600">
+            Aucune annonce publiée pour le moment.
+          </div>
+        )}
+
+        {status === 'ready' && ads.length > 0 && (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {ads.map((ad) => (
+              <AdCard
+                key={ad.id}
+                ad={ad}
+                isFavorite={favIds.has(ad.id)}
+                onRequireLogin={onRequireLogin}
+                onPlay={onPlay}
+                onEdit={onEdit}
+                sellerProfile={seller && ad.ownerUid === sellerId ? seller : undefined}
+                showVisitShop={false}
+                onVisitShop={handleVisitSeller}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}

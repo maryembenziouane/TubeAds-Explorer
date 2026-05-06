@@ -10,6 +10,23 @@ export function isAdminDashboardPath(pathname) {
   return normalizePathname(pathname) === ADMIN_DASHBOARD_PATH;
 }
 
+/** `/shop/:userId` — seller boutique page */
+export function matchShopPath(pathname) {
+  const p = normalizePathname(pathname);
+  const m = p.match(/^\/shop\/([^/]+)$/);
+  if (!m) return null;
+  try {
+    return { userId: decodeURIComponent(m[1]) };
+  } catch {
+    return { userId: m[1] };
+  }
+}
+
+export function shopPathForUser(userId) {
+  if (!userId) return '/';
+  return `/shop/${encodeURIComponent(userId)}`;
+}
+
 export function subscribePathname(onChange) {
   function handler() {
     onChange(normalizePathname(window.location.pathname));

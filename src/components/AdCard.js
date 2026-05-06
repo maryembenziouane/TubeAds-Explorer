@@ -46,7 +46,16 @@ function hasNewBadge(ts) {
   return ms != null && Date.now() - ms < NEW_MS;
 }
 
-export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit }) {
+export default function AdCard({
+  ad,
+  isFavorite,
+  onRequireLogin,
+  onPlay,
+  onEdit,
+  sellerProfile,
+  onVisitShop,
+  showVisitShop = true,
+}) {
   const { user } = useAuth();
   const [heartBusy, setHeartBusy] = useState(false);
   const hasVideo = Boolean(ad.youtubeVideoId) || Boolean(ad.videoUrl);
@@ -73,6 +82,7 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit 
   }
 
   const isOwner = !!user && user.uid === ad.ownerUid;
+  const isSellerPro = !!sellerProfile?.isPro;
 
   return (
     <article className="group relative rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:z-[1] hover:-translate-y-0.5 hover:shadow-lg">
@@ -155,9 +165,19 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit 
         <div className="text-lg font-extrabold text-brand-500">
           {formatPrice(ad.priceCents, ad.currency)}
         </div>
-        <h3 className="line-clamp-2 min-h-[2.65rem] text-[15px] font-semibold leading-snug text-slate-900">
-          {ad.title || 'Untitled'}
-        </h3>
+        <div className="flex min-h-[2.65rem] flex-wrap items-start gap-2">
+          <h3 className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-slate-900">
+            {ad.title || 'Untitled'}
+          </h3>
+          {isSellerPro && (
+            <span
+              className="shrink-0 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white"
+              title="Compte Pro"
+            >
+              Pro
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-x-1 text-xs font-medium text-slate-500">
           <Icon name="pin" className="h-3.5 w-3.5 shrink-0 opacity-75" />
           <span>{cityLabel(ad.city) || '—'}</span>
@@ -166,6 +186,19 @@ export default function AdCard({ ad, isFavorite, onRequireLogin, onPlay, onEdit 
           </span>
           <span>{relativeTime(ad.createdAt) || 'recent'}</span>
         </div>
+        {showVisitShop && ad.ownerUid && onVisitShop && (
+          <button
+            type="button"
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-center text-xs font-bold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onVisitShop(ad.ownerUid);
+            }}
+          >
+            Visiter la Boutique
+          </button>
+        )}
       </div>
     </article>
   );

@@ -191,6 +191,25 @@ export function listenPendingAds(onChange, onError) {
   );
 }
 
+/**
+ * All listings owned by a user (Boutique / seller page).
+ */
+export function listenListingsByOwner(ownerUid, onChange, onError) {
+  if (!ownerUid) {
+    onChange([]);
+    return () => {};
+  }
+  return onSnapshot(
+    query(collection(db, ANNONCES_COLLECTION), where('ownerUid', '==', ownerUid)),
+    (snapshot) => {
+      const items = snapshot.docs.map((d) => parseAd(d.id, d.data()));
+      items.sort((a, b) => timestampMs(b.createdAt) - timestampMs(a.createdAt));
+      onChange(items);
+    },
+    (err) => onError?.(err),
+  );
+}
+
 export async function getAd(adId) {
   const snap = await getDoc(doc(db, ANNONCES_COLLECTION, adId));
   if (!snap.exists()) return null;

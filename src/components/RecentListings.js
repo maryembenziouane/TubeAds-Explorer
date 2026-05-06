@@ -5,6 +5,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSellerProfiles } from '../hooks/useSellerProfiles';
 import { ANNONCES_COLLECTION, adIsVisibleOnPublicHome, adMatchesSelectedCategory, listenAds } from '../services/listings';
 import { listenFavoriteIds } from '../services/favorites';
 import AdCard from './AdCard';
@@ -15,6 +16,7 @@ export default function RecentListings({
   onRequireLogin,
   onPlay,
   onEdit,
+  onVisitShop,
 }) {
   const { user } = useAuth();
   const [ads, setAds] = useState([]);
@@ -55,6 +57,9 @@ export default function RecentListings({
   }, [user]);
 
   const publishedAds = useMemo(() => ads.filter(adIsVisibleOnPublicHome), [ads]);
+
+  const ownerUidList = useMemo(() => publishedAds.map((a) => a.ownerUid), [publishedAds]);
+  const sellerProfiles = useSellerProfiles(ownerUidList);
 
   const filtered = useMemo(() => {
     const byCategory = category
@@ -117,6 +122,8 @@ export default function RecentListings({
               onRequireLogin={onRequireLogin}
               onPlay={onPlay}
               onEdit={onEdit}
+              sellerProfile={sellerProfiles[ad.ownerUid]}
+              onVisitShop={onVisitShop}
             />
           ))}
         </div>
