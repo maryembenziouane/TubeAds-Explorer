@@ -133,21 +133,6 @@ export default function AdCard({
         </div>
       </button>
 
-      {isOwner && (
-        <button
-          type="button"
-          className="absolute left-2.5 top-12 rounded-full border border-black/5 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 shadow-md backdrop-blur transition hover:scale-105"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // Handled by parent (opens edit modal/page)
-            onEdit?.(ad);
-          }}
-        >
-          Modifier
-        </button>
-      )}
-
       <button
         type="button"
         onClick={onFavorite}
@@ -162,8 +147,23 @@ export default function AdCard({
       </button>
 
       <div className="space-y-1.5 p-4">
-        <div className="text-lg font-extrabold text-brand-500">
-          {formatPrice(ad.priceCents, ad.currency)}
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 text-lg font-extrabold text-brand-500">
+            {formatPrice(ad.priceCents, ad.currency)}
+          </div>
+          {isOwner && (
+            <button
+              type="button"
+              className="shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit?.(ad);
+              }}
+            >
+              Modifier
+            </button>
+          )}
         </div>
         <div className="flex min-h-[2.65rem] flex-wrap items-start gap-2">
           <h3 className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-slate-900">

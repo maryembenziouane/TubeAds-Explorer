@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import useIsAdmin from '../hooks/useIsAdmin';
 import { Icon } from './Icons';
 import logoUrl from '../logo.png';
 
@@ -29,11 +30,13 @@ export default function Header({
   onNavigate,
   onOpenMessages,
   onLogin,
+  onAdminDashboard,
   transparent = false,
   locale,
   onLocaleChange,
 }) {
   const { user, signOut } = useAuth();
+  const { isAdmin, ready } = useIsAdmin();
   const [accountOpen, setAccountOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const langWrapRef = useRef(null);
@@ -145,6 +148,15 @@ export default function Header({
 
           {/* Utilities */}
           <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+            {ready && isAdmin && (
+              <button
+                type="button"
+                onClick={() => onAdminDashboard?.()}
+                className="mr-1 hidden rounded-lg px-2.5 py-1.5 text-xs font-semibold text-brand-600 transition hover:bg-brand-50 sm:inline-flex"
+              >
+                Admin Dashboard
+              </button>
+            )}
             <button
               type="button"
               className="relative grid h-11 w-11 place-items-center rounded-full text-slate-700 transition hover:bg-black/[0.04]"
@@ -287,6 +299,15 @@ export default function Header({
               </button>
             );
           })}
+          {ready && isAdmin && (
+            <button
+              type="button"
+              onClick={() => onAdminDashboard?.()}
+              className="whitespace-nowrap rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-700"
+            >
+              Admin
+            </button>
+          )}
         </nav>
       </div>
     </header>

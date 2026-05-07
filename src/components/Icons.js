@@ -118,6 +118,12 @@ const ICONS = {
       <rect x="13" y="13" width="7" height="7" rx="1" />
     </svg>
   ),
+  tag: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M3 12V4h8l10 10-8 8L3 12Z" />
+      <circle cx="8" cy="8" r="1.6" />
+    </svg>
+  ),
   message: (props) => (
     <svg viewBox="0 0 24 24" {...base} {...props}>
       <path d="M4 5h16v11H8l-4 4V5Z" />
@@ -158,6 +164,12 @@ const ICONS = {
       <path d="M6 21a6 6 0 1 1 12 0" />
       <circle cx="8.25" cy="13" r="1" />
       <circle cx="15.75" cy="13" r="1" />
+    </svg>
+  ),
+  shield: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6l-8-3Z" />
+      <path d="m9 12 2 2 4-4" />
     </svg>
   ),
 };
