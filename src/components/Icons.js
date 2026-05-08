@@ -48,6 +48,17 @@ const ICONS = {
       <path d="m6 9 6 6 6-6" />
     </svg>
   ),
+  check: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M20 6 9 17l-5-5"
+        stroke="currentColor"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   close: (props) => (
     <svg viewBox="0 0 24 24" {...base} {...props}>
       <path d="M6 6l12 12M18 6 6 18" />
@@ -170,6 +181,49 @@ const ICONS = {
     <svg viewBox="0 0 24 24" {...base} {...props}>
       <path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6l-8-3Z" />
       <path d="m9 12 2 2 4-4" />
+    </svg>
+  ),
+  smartphone: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <rect x="6.5" y="3" width="11" height="18" rx="2" />
+      <path d="M10 19h4" />
+    </svg>
+  ),
+  fileText: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+    </svg>
+  ),
+  soccer: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3c-2 3.5-2 14.5 0 18M3 12c3.5 2 14.5 2 18 0" />
+      <path d="m7.5 8.5 3 2.5M13.5 8.5 17 11M9 15l6-1" />
+    </svg>
+  ),
+  star: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M12 2l3 6 6 .9-4.3 4.2 1 6-5.7-3-5.7 3 1-6L3 8.9 9 8z" />
+    </svg>
+  ),
+  starFilled: (props) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  ),
+  eye: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  refresh: (props) => (
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+      <path d="M16 21h5v-5" />
     </svg>
   ),
 };

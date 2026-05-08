@@ -1,55 +1,59 @@
-// Bottom trust bar — French copy aligned with marketplace reassurance (Avito-style).
+// Trust bar — copy aligned with marketplace reference.
+import { SITE_GUTTER_CLASS, SITE_MAX_WIDTH_CLASS } from '../constants/layout';
+
 const ITEMS = [
   {
     id: 'pay',
     title: 'Paiement sécurisé',
-    body: 'Transactions protégées',
+    body: 'Payez en toute sécurité',
     tone: 'bg-emerald-50 text-emerald-600',
-    icon: CardIcon,
+    icon: ShieldPayIcon,
   },
   {
     id: 'ship',
     title: 'Livraison disponible',
-    body: 'Retrait ou envoi selon l’annonce',
-    tone: 'bg-sky-50 text-sky-600',
+    body: 'Partout au Maroc',
+    tone: 'bg-amber-50 text-amber-600',
     icon: TruckIcon,
   },
   {
     id: 'support',
-    title: 'Support client',
-    body: 'Une équipe à votre écoute',
+    title: 'Support 24/7',
+    body: 'Nous sommes là pour vous',
     tone: 'bg-violet-50 text-violet-600',
     icon: HeadsetIcon,
   },
   {
-    id: 'sellers',
-    title: 'Vendeurs actifs',
-    body: 'Boutiques et particuliers',
-    tone: 'bg-amber-50 text-amber-600',
-    icon: UsersIcon,
+    id: 'return',
+    title: 'Satisfait ou remboursé',
+    body: 'Retour simple et rapide',
+    tone: 'bg-sky-50 text-sky-600',
+    icon: RefreshIcon,
   },
 ];
 
 export default function TrustStrip() {
   return (
-    <section className="mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4 lg:p-5">
-        {ITEMS.map((item) => {
-          const I = item.icon;
-          return (
-            <div key={item.id} className="flex items-center gap-3">
-              <span
-                className={'grid h-11 w-11 shrink-0 place-items-center rounded-xl ' + item.tone}
-              >
-                <I className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-slate-900">{item.title}</div>
-                <div className="truncate text-xs text-slate-500">{item.body}</div>
+    <section className="bg-slate-100/90">
+      <div className={`mx-auto ${SITE_MAX_WIDTH_CLASS} py-8 ${SITE_GUTTER_CLASS}`}>
+        <div className="grid grid-cols-1 divide-y divide-slate-200/90 rounded-2xl border border-slate-200/90 bg-white shadow-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+          {ITEMS.map((item) => {
+            const I = item.icon;
+            return (
+              <div key={item.id} className="flex items-center gap-3 px-4 py-4 sm:py-5">
+                <span
+                  className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${item.tone}`}
+                >
+                  <I className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-slate-900">{item.title}</div>
+                  <div className="text-xs text-slate-500">{item.body}</div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -63,11 +67,11 @@ const stroke = {
   strokeLinejoin: 'round',
 };
 
-function CardIcon(props) {
+function ShieldPayIcon(props) {
   return (
     <svg viewBox="0 0 24 24" {...stroke} {...props}>
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <path d="M2 10h20" />
+      <path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6l-8-3Z" />
+      <path d="m9 12 2 2 4-4" />
     </svg>
   );
 }
@@ -93,13 +97,13 @@ function HeadsetIcon(props) {
   );
 }
 
-function UsersIcon(props) {
+function RefreshIcon(props) {
   return (
     <svg viewBox="0 0 24 24" {...stroke} {...props}>
-      <circle cx="9" cy="8" r="3.5" />
-      <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-      <circle cx="17" cy="9" r="2.5" />
-      <path d="M21.5 20a4.5 4.5 0 0 0-7-3.7" />
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+      <path d="M16 21h5v-5" />
     </svg>
   );
 }

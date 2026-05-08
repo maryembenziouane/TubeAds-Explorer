@@ -1,54 +1,98 @@
 /**
- * Category strip — pastel rounded-square tiles synced with Firestore filters
- * (same taxonomy as the React Native taxonomy in `categories.js`).
- *
- * Matches reference layout: All + Vehicles + … + Kids & Baby + More (overflow).
+ * Category strip — 9 rounded tiles + overflow (“Plus”) per marketplace reference.
  */
 import { useEffect, useRef, useState } from 'react';
+import { SITE_GUTTER_CLASS, SITE_MAX_WIDTH_CLASS } from '../constants/layout';
 import { Icon } from './Icons';
 
-const PRIMARY = [
+const ROW = [
   {
     id: null,
-    label: 'Tout',
+    label: 'Toutes',
     icon: 'grid',
-    sq: 'bg-brand-500 text-white shadow-md shadow-brand-500/20 ring-0',
-    activeRing: true,
+    squareClass: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100/90',
     isAll: true,
   },
-  { id: 'vehicles', label: 'Véhicules', icon: 'car', sq: 'bg-white text-sky-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'real-estate', label: 'Immobilier', icon: 'home', sq: 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'electronics', label: 'Électronique', icon: 'cpu', sq: 'bg-white text-violet-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'home', label: 'Maison & jardin', icon: 'sofa', sq: 'bg-white text-amber-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'fashion', label: 'Mode', icon: 'tshirt', sq: 'bg-white text-pink-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'kids-baby', label: 'Bébé & enfants', icon: 'baby', sq: 'bg-white text-sky-700 shadow-sm ring-1 ring-slate-100' },
+  {
+    id: 'vehicles',
+    label: 'Véhicules',
+    icon: 'car',
+    squareClass: 'bg-sky-50 text-sky-600 ring-1 ring-sky-100/80',
+  },
+  {
+    id: 'real-estate',
+    label: 'Immobilier',
+    icon: 'home',
+    squareClass: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80',
+  },
+  {
+    id: 'electronics',
+    label: 'Électronique',
+    icon: 'smartphone',
+    squareClass: 'bg-violet-50 text-violet-600 ring-1 ring-violet-100/80',
+  },
+  {
+    id: 'home',
+    label: 'Maison & Jardin',
+    icon: 'sofa',
+    squareClass: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100/80',
+  },
+  {
+    id: 'fashion',
+    label: 'Mode',
+    icon: 'tshirt',
+    squareClass: 'bg-pink-50 text-pink-600 ring-1 ring-pink-100/80',
+  },
+  {
+    id: 'kids-baby',
+    label: 'Enfants',
+    icon: 'baby',
+    squareClass: 'bg-sky-100 text-sky-700 ring-1 ring-sky-100/80',
+  },
+  {
+    id: 'other',
+    label: 'Loisirs & Sport',
+    icon: 'soccer',
+    squareClass: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100/80',
+  },
 ];
 
 const MORE = [
-  { id: 'services', label: 'Services', icon: 'wrench', sq: 'bg-white text-teal-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'jobs', label: 'Emploi', icon: 'briefcase', sq: 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'rugs', label: 'Tapis', icon: 'rug', sq: 'bg-white text-rose-600 shadow-sm ring-1 ring-slate-100' },
-  { id: 'other', label: 'Autres', icon: 'grid', sq: 'bg-white text-slate-600 shadow-sm ring-1 ring-slate-100' },
+  { id: 'services', label: 'Services', icon: 'wrench', squareClass: 'bg-teal-50 text-teal-600' },
+  { id: 'jobs', label: 'Emploi', icon: 'briefcase', squareClass: 'bg-indigo-50 text-indigo-600' },
+  { id: 'rugs', label: 'Tapis', icon: 'rug', squareClass: 'bg-rose-50 text-rose-600' },
 ];
 
 export default function CategoryGrid({ selected, onSelect }) {
   return (
-    <section className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
-      <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-        Parcourir par catégorie
-      </h2>
-      <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
-        Touchez une catégorie pour filtrer les annonces sur la page.
-      </p>
-      <div className="mt-8 grid grid-cols-4 gap-3 sm:gap-4 md:flex md:flex-wrap md:justify-between md:gap-5">
-        {PRIMARY.map((t) => {
+    <section
+      id="category-section"
+      className={`mx-auto ${SITE_MAX_WIDTH_CLASS} py-10 ${SITE_GUTTER_CLASS}`}
+    >
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-6">
+        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+          Parcourir par catégorie
+        </h2>
+        <button
+          type="button"
+          className="text-sm font-semibold text-brand-600 transition hover:text-brand-700"
+          onClick={() => {
+            document.getElementById('category-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+        >
+          Voir toutes les catégories
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 lg:gap-4">
+        {ROW.map((t) => {
           const selectedHere = t.isAll ? !selected : selected === t.id;
           return (
             <CatTile
               key={String(t.id ?? 'all')}
               label={t.label}
               icon={t.icon}
-              squareClass={t.sq}
+              squareClass={t.squareClass}
               selected={selectedHere}
               isAll={t.isAll}
               onClick={() => onSelect?.(t.id)}
@@ -71,23 +115,23 @@ function CatTile({ label, icon, squareClass, selected, isAll, onClick }) {
     >
       <span
         className={
-          'flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl transition md:h-[5rem] md:w-[5rem] ' +
+          'flex h-[4.25rem] w-[4.25rem] shrink-0 items-center justify-center rounded-2xl transition md:h-[4.75rem] md:w-[4.75rem] ' +
           squareClass +
           (selected && isAll
-            ? ' ring-2 ring-brand-500 ring-offset-2 ring-offset-slate-50 shadow-md '
+            ? ' ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white shadow-sm '
             : selected && !isAll
-              ? ' ring-2 ring-brand-500 ring-offset-2 ring-offset-white shadow-md '
+              ? ' ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white shadow-md '
               : ' hover:-translate-y-0.5 hover:shadow-md ')
         }
       >
         <Icon
           name={icon}
-          className={`h-[1.65rem] w-[1.65rem] md:h-7 md:w-7 ${isAll && selected ? 'text-white' : ''}`}
+          className={`h-7 w-7 md:h-8 md:w-8 ${selected && isAll ? '' : ''}`}
         />
       </span>
       <span
         className={
-          'text-center text-xs font-semibold md:text-[13px] ' +
+          'max-w-[5.5rem] text-center text-[11px] font-semibold leading-tight md:text-xs ' +
           (selected ? 'text-brand-600' : 'font-medium text-slate-700')
         }
       >
@@ -117,14 +161,14 @@ function MorePopover({ selected, onSelect, extras }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex flex-col items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-md"
+        className="flex w-full flex-col items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
       >
         <span
           className={
-            'flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl transition md:h-[5rem] md:w-[5rem] ' +
+            'flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-2xl transition md:h-[4.75rem] md:w-[4.75rem] ' +
             (openFromSelection
               ? 'bg-brand-500 text-white ring-2 ring-brand-400 ring-offset-2 ring-offset-white shadow-md'
-              : 'bg-white text-slate-500 shadow-sm ring-1 ring-slate-100 hover:-translate-y-0.5 hover:shadow-md')
+              : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200/80 hover:-translate-y-0.5 hover:shadow-md')
           }
         >
           <span className="flex items-end gap-[3px]" aria-hidden>
@@ -135,7 +179,7 @@ function MorePopover({ selected, onSelect, extras }) {
         </span>
         <span
           className={
-            'text-center text-xs font-semibold md:text-[13px] ' +
+            'max-w-[5.5rem] text-center text-[11px] font-semibold md:text-xs ' +
             (openFromSelection ? 'text-brand-600' : 'font-medium text-slate-700')
           }
         >
@@ -159,7 +203,9 @@ function MorePopover({ selected, onSelect, extras }) {
                   setOpen(false);
                 }}
               >
-                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${t.sq}`}>
+                <span
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${t.squareClass} ring-1 ring-black/5`}
+                >
                   <Icon name={t.icon} className="h-[18px] w-[18px]" />
                 </span>
                 {t.label}

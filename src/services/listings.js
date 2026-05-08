@@ -41,6 +41,12 @@ export function adMatchesSelectedCategory(ad, selectedTileId) {
   return stored === fromTileId || stored === slug || stored === normCat(selectedTileId);
 }
 
+/** Hero / filter by city id (same ids as `categories.js` CITIES). */
+export function adMatchesCity(ad, cityId) {
+  if (!cityId) return true;
+  return String(ad.city ?? '') === String(cityId);
+}
+
 /** Strip a bare YouTube ID or parse one from youtube.com / youtu.be URLs. */
 function extractYoutubeVideoId(candidate) {
   if (!candidate || typeof candidate !== 'string') return '';
@@ -135,6 +141,15 @@ export function parseAd(id, raw) {
     status: raw.status ?? 'active',
     createdAt:
       raw.createdAt ?? raw.created_at ?? raw.timestamp ?? raw.date ?? null,
+    viewCount: (() => {
+      const v = raw.views ?? raw.viewCount ?? raw.view_count;
+      if (typeof v === 'number' && Number.isFinite(v)) return Math.round(v);
+      if (typeof v === 'string' && v.trim()) {
+        const n = Number.parseInt(v, 10);
+        return Number.isFinite(n) ? n : null;
+      }
+      return null;
+    })(),
   };
 }
 

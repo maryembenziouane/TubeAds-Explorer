@@ -6,6 +6,12 @@ export function normalizePathname(pathname = '/') {
 
 export const ADMIN_DASHBOARD_PATH = '/admin/dashboard';
 
+export const LISTINGS_PAGE_PATH = '/listings';
+
+export function isListingsPagePath(pathname) {
+  return normalizePathname(pathname) === LISTINGS_PAGE_PATH;
+}
+
 export function isAdminDashboardPath(pathname) {
   return normalizePathname(pathname) === ADMIN_DASHBOARD_PATH;
 }

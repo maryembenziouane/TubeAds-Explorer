@@ -4,6 +4,7 @@ import { subscribeUser } from '../services/users';
 import { adIsVisibleOnPublicHome, listenListingsByOwner } from '../services/listings';
 import { listenFavoriteIds } from '../services/favorites';
 import { pushPath } from '../utils/routing';
+import { SITE_GUTTER_CLASS, SITE_MAX_WIDTH_CLASS } from '../constants/layout';
 import AdCard from './AdCard';
 
 export default function ShopPage({
@@ -69,7 +70,9 @@ export default function ShopPage({
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
       <header className="border-b border-slate-100 bg-white">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-4 py-10 sm:px-6 lg:flex-row lg:items-start lg:gap-10 lg:px-8">
+        <div
+          className={`mx-auto flex ${SITE_MAX_WIDTH_CLASS} flex-col gap-5 py-10 lg:flex-row lg:items-start lg:gap-10 ${SITE_GUTTER_CLASS}`}
+        >
           <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm sm:h-28 sm:w-28">
             {seller?.shopLogoUrl ? (
               <img src={seller.shopLogoUrl} alt="" className="h-full w-full object-cover" />
@@ -108,7 +111,7 @@ export default function ShopPage({
         </div>
       </header>
 
-      <section className="mx-auto mt-10 max-w-[1280px] px-4 sm:px-6 lg:px-8">
+      <section className={`mx-auto mt-10 ${SITE_MAX_WIDTH_CLASS} ${SITE_GUTTER_CLASS}`}>
         <h2 className="text-lg font-extrabold tracking-tight text-slate-900">
           Annonces du vendeur · {ads.length}
         </h2>

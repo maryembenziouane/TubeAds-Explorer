@@ -31,13 +31,13 @@ function relativeTime(ts) {
   const ms = tsMs(ts);
   if (ms == null) return '';
   const minutes = Math.round((Date.now() - ms) / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return "À l'instant";
+  if (minutes < 60) return `Il y a ${minutes} min`;
   const h = Math.round(minutes / 60);
-  if (h < 24) return `${h} h ago`;
+  if (h < 24) return `Il y a ${h} h`;
   const d = Math.round(h / 24);
-  if (d < 14) return `${d} d ago`;
-  return `${Math.round(d / 7)} w ago`;
+  if (d < 14) return `Il y a ${d} j`;
+  return `Il y a ${Math.round(d / 7)} sem.`;
 }
 
 const NEW_MS = 7 * 86400000;
@@ -55,6 +55,7 @@ export default function AdCard({
   sellerProfile,
   onVisitShop,
   showVisitShop = true,
+  density = 'default',
 }) {
   const { user } = useAuth();
   const [heartBusy, setHeartBusy] = useState(false);
@@ -83,12 +84,13 @@ export default function AdCard({
 
   const isOwner = !!user && user.uid === ad.ownerUid;
   const isSellerPro = !!sellerProfile?.isPro;
+  const compact = density === 'compact';
 
   return (
-    <article className="group relative rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:z-[1] hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white shadow-[0_2px_10px_rgba(15,23,42,0.045)] transition hover:z-[1] hover:border-slate-200 hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)]">
       <button
         type="button"
-        className="relative block w-full overflow-hidden rounded-t-2xl text-left outline-none ring-inset focus-visible:ring-2 focus-visible:ring-brand-400"
+        className="relative block w-full overflow-hidden rounded-t-xl text-left outline-none ring-inset focus-visible:ring-2 focus-visible:ring-brand-400"
         onClick={() => onPlay?.(ad)}
       >
         <div className="relative aspect-[4/3] w-full bg-slate-50">
@@ -119,15 +121,20 @@ export default function AdCard({
               aria-hidden
               className="pointer-events-none absolute inset-0 flex items-center justify-center"
             >
-              <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/95 text-brand-500 shadow-lg ring-1 ring-black/5 transition group-hover:scale-105">
-                <Icon name="play" className="ml-0.5 h-6 w-6" />
+              <span
+                className={
+                  'flex items-center justify-center rounded-full bg-white/95 text-brand-500 shadow-lg ring-1 ring-black/5 transition group-hover:scale-105 ' +
+                  (compact ? 'h-11 w-11' : 'h-[52px] w-[52px]')
+                }
+              >
+                <Icon name="play" className={compact ? 'ml-0.5 h-5 w-5' : 'ml-0.5 h-6 w-6'} />
               </span>
             </span>
           )}
 
           {hasNewBadge(ad.createdAt) && (
             <span className="absolute left-2.5 top-2.5 rounded-md bg-brand-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white shadow">
-              New
+              Nouveau
             </span>
           )}
         </div>
@@ -139,35 +146,18 @@ export default function AdCard({
         aria-pressed={isFavorite}
         aria-label="Favorite"
         className={
-          'absolute right-2.5 top-2.5 grid h-10 w-10 place-items-center rounded-full border border-black/5 bg-white shadow-md backdrop-blur transition hover:scale-105 ' +
-          (isFavorite ? 'text-brand-500' : 'text-slate-600')
+          'absolute right-2.5 top-2.5 z-[2] grid place-items-center rounded-full border border-slate-200/90 bg-white text-slate-600 shadow-md transition hover:scale-105 ' +
+          (compact ? 'h-9 w-9 ' : 'h-10 w-10 ') +
+          (isFavorite ? 'text-brand-500' : '')
         }
       >
-        <Icon name={isFavorite ? 'heartFilled' : 'heart'} className="h-5 w-5" />
+        <Icon name={isFavorite ? 'heartFilled' : 'heart'} className={compact ? 'h-4.5 w-4.5' : 'h-5 w-5'} />
       </button>
 
-      <div className="space-y-1.5 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0 text-lg font-extrabold text-brand-500">
-            {formatPrice(ad.priceCents, ad.currency)}
-          </div>
-          {isOwner && (
-            <button
-              type="button"
-              className="shrink-0 rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onEdit?.(ad);
-              }}
-            >
-              Modifier
-            </button>
-          )}
-        </div>
-        <div className="flex min-h-[2.65rem] flex-wrap items-start gap-2">
-          <h3 className="line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-slate-900">
-            {ad.title || 'Untitled'}
+      <div className={compact ? 'space-y-1.5 p-3' : 'space-y-2 p-4'}>
+        <div className="flex min-h-[2.25rem] flex-wrap items-start gap-2">
+          <h3 className={compact ? 'line-clamp-2 flex-1 text-[13px] font-semibold leading-snug text-slate-900' : 'line-clamp-2 flex-1 text-[15px] font-semibold leading-snug text-slate-900'}>
+            {ad.title || 'Sans titre'}
           </h3>
           {isSellerPro && (
             <span
@@ -178,18 +168,50 @@ export default function AdCard({
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-x-1 text-xs font-medium text-slate-500">
-          <Icon name="pin" className="h-3.5 w-3.5 shrink-0 opacity-75" />
-          <span>{cityLabel(ad.city) || '—'}</span>
-          <span className="text-slate-300" aria-hidden>
-            •
+        <div className="flex items-center justify-between gap-2">
+          <div className={compact ? 'min-w-0 text-base font-extrabold text-brand-500' : 'min-w-0 text-lg font-extrabold text-brand-500'}>
+            {formatPrice(ad.priceCents, ad.currency)}
+          </div>
+          {isOwner && (
+            <button
+              type="button"
+              className={
+                'shrink-0 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 ' +
+                (compact ? 'px-2.5 py-1' : 'px-3 py-1.5')
+              }
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit?.(ad);
+              }}
+            >
+              Modifier
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-medium text-slate-500">
+          <span className="flex flex-wrap items-center gap-x-1">
+            <Icon name="pin" className="h-3.5 w-3.5 shrink-0 opacity-75" />
+            <span>{cityLabel(ad.city) || '—'}</span>
+            <span className="text-slate-300" aria-hidden>
+              •
+            </span>
+            <span>{relativeTime(ad.createdAt) || 'Récent'}</span>
           </span>
-          <span>{relativeTime(ad.createdAt) || 'recent'}</span>
+          {typeof ad.viewCount === 'number' && ad.viewCount >= 0 && (
+            <span className="flex items-center gap-1 tabular-nums text-slate-400">
+              <Icon name="eye" className="h-3.5 w-3.5" />
+              {ad.viewCount}
+            </span>
+          )}
         </div>
         {showVisitShop && ad.ownerUid && onVisitShop && (
           <button
             type="button"
-            className="mt-1 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-center text-xs font-bold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+            className={
+              'mt-1 w-full rounded-xl border border-slate-200/90 bg-white text-center text-xs font-bold text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-300 hover:bg-slate-50 ' +
+              (compact ? 'py-2' : 'py-2.5')
+            }
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
